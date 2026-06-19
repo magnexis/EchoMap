@@ -39,6 +39,7 @@ from .services.public_intelligence import (
 )
 from .services.reports import build_report_context
 from .services.relationship import trace_relationship_path
+from . import __version__
 from .models import utc_now_iso
 
 
@@ -191,7 +192,7 @@ def create_app(db: Database | None = None) -> FastAPI:
     db = db or build_database()
     app = FastAPI(
         title="EchoMap API",
-        version="0.1.0",
+        version=__version__,
         description="FastAPI backend for EchoMap's relationship graph, investigations, and discovery workflows.",
     )
     app.state.db = db

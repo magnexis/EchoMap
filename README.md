@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://www.python.org/"><img alt="Python" src="https://img.shields.io/badge/python-3.11%2B-blue.svg"></a>
-  <img alt="Release" src="https://img.shields.io/badge/release-0.1.0-22c55e.svg">
+  <img alt="Release" src="https://img.shields.io/badge/release-0.2.0-22c55e.svg">
   <img alt="Status" src="https://img.shields.io/badge/status-alpha-f59e0b.svg">
   <a href="./pyproject.toml"><img alt="Build" src="https://img.shields.io/badge/build-pyproject%20%2B%20PySide6-2ea44f.svg"></a>
   <img alt="Desktop" src="https://img.shields.io/badge/app-desktop%20intelligence%20platform-7c3aed.svg">
