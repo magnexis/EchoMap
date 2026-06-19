@@ -1,0 +1,64 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "echomap"
+version = "0.1.0"
+description = "EchoMap - internet relationship engine"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "PySide6>=6.6",
+  "requests>=2.31",
+]
+
+[project.optional-dependencies]
+api = ["fastapi>=0.115", "uvicorn[standard]>=0.30"]
+postgres = ["psycopg[binary]>=3.2"]
+neo4j = ["neo4j>=5.20"]
+intel = [
+  "pymupdf>=1.24",
+  "pdfplumber>=0.11",
+  "spacy>=3.7",
+  "pandas>=2.2",
+  "geopy>=2.4",
+  "folium>=0.17",
+]
+geo = [
+  "networkx>=3.3",
+  "pyvis>=0.3.2",
+  "graphviz>=0.20",
+  "shapely>=2.0",
+  "geopandas>=1.0",
+  "matplotlib>=3.8",
+]
+all = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.30",
+  "psycopg[binary]>=3.2",
+  "neo4j>=5.20",
+  "pymupdf>=1.24",
+  "pdfplumber>=0.11",
+  "spacy>=3.7",
+  "pandas>=2.2",
+  "geopy>=2.4",
+  "folium>=0.17",
+  "networkx>=3.3",
+  "pyvis>=0.3.2",
+  "graphviz>=0.20",
+  "shapely>=2.0",
+  "geopandas>=1.0",
+  "matplotlib>=3.8",
+]
+
+[project.scripts]
+echomap = "echomap.__main__:main"
+echomap-api = "echomap.api:main"
+echomap-cli = "echomap.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
