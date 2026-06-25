@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import ipaddress
 import re
 from datetime import datetime, timezone
 from typing import Any
@@ -25,6 +26,25 @@ def _edge_id(source: str, target: str, relation: str) -> str:
 
 
 def _safe_get(url: str, timeout: float = 8.0) -> tuple[str, dict[str, str], int]:
+    # Validate URL protocol
+    parsed = urlparse(url)
+    if parsed.scheme not in ("http", "https"):
+        raise ValueError(f"Unsupported URL scheme: {parsed.scheme}")
+
+    # Reject private/internal IP ranges via hostname
+    import socket
+    hostname = parsed.hostname
+    if hostname:
+        try:
+            port = parsed.port or (443 if parsed.scheme == "https" else 80)
+            addr_infos = socket.getaddrinfo(hostname, port)
+            for _family, _type, _proto, _canonname, sockaddr in addr_infos:
+                ip = ipaddress.ip_address(sockaddr[0])
+                if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved or ip.is_multicast:
+                    raise ValueError(f"URL resolves to a private/internal IP address: {ip}")
+        except socket.gaierror:
+            pass  # DNS resolution failed; the fetch will fail naturally
+
     response = requests.get(
         url,
         timeout=timeout,
@@ -245,7 +265,7 @@ def discover(query: str) -> DiscoveryResult:
             archaeology.extend(archive_bundle.certificates)
             timeline.extend(archive_bundle.timeline)
             related_targets.extend(archive_bundle.related_targets)
-        except requests.RequestException as exc:
+        except (ValueError, requests.RequestException) as exc:
             summary_parts.append(f"Fetch failed: {exc.__class__.__name__}")
             archaeology.append(
                 {
