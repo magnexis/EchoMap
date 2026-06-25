@@ -43,6 +43,25 @@ from . import __version__
 from .models import utc_now_iso
 
 
+def _validate_path(user_path: str, *, must_exist: bool = False) -> Path:
+    """Validate and sanitize a user-supplied file path.
+
+    Rejects paths containing '..' components and ensures the resolved
+    path stays within an allowed directory (the caller's cwd or the
+    echomap data directory).
+    """
+    raw = Path(user_path)
+    if ".." in raw.parts:
+        raise HTTPException(status_code=400, detail="Path traversal ('..') is not allowed.")
+    resolved = raw.resolve()
+    allowed_roots = [Path.cwd(), data_dir()]
+    if not any(str(resolved).startswith(str(root)) for root in allowed_roots):
+        raise HTTPException(status_code=400, detail="Path is outside allowed directories.")
+    if must_exist and not resolved.exists():
+        raise HTTPException(status_code=404, detail="File not found at the specified path.")
+    return resolved
+
+
 def data_dir() -> Path:
     base = Path.home() / ".echomap"
     base.mkdir(parents=True, exist_ok=True)
@@ -356,9 +375,7 @@ def create_app(db: Database | None = None) -> FastAPI:
 
     @app.post("/public/import/tabular")
     def public_import_tabular(request: TabularImportRequest) -> dict:
-        path = Path(request.path)
-        if not path.exists():
-            raise HTTPException(status_code=404, detail="Tabular file path not found.")
+        path = _validate_path(request.path, must_exist=True)
         result = import_tabular_data(path, title=request.title, source_type=request.source_type)
         db.upsert_nodes(result.nodes)
         db.upsert_edges(result.edges)
@@ -423,7 +440,7 @@ def create_app(db: Database | None = None) -> FastAPI:
                     for point in payload_points:
                         if "latitude" in point and "longitude" in point:
                             points.append(point)
-        output = Path(request.output)
+        output = _validate_path(request.output)
         format_name = request.format.lower()
         if format_name == "html":
             path = export_public_map_html(
@@ -575,9 +592,7 @@ def create_app(db: Database | None = None) -> FastAPI:
 
     @app.post("/public/documents/ingest")
     def ingest_public_document(request: DocumentIngestRequest) -> dict:
-        path = Path(request.path)
-        if not path.exists():
-            raise HTTPException(status_code=404, detail="Document path not found.")
+        path = _validate_path(request.path, must_exist=True)
         result = ingest_document_file(path, layer_name=request.layer_name, source_type=request.source_type)
         db.upsert_nodes(result.nodes)
         db.upsert_edges(result.edges)
