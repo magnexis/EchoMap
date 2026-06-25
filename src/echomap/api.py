@@ -813,7 +813,9 @@ def create_app(db: Database | None = None) -> FastAPI:
 
     @app.delete("/bookmarks/{node_id}")
     def delete_bookmark(node_id: str) -> dict:
-        db.remove_bookmark(node_id)
+        deleted = db.remove_bookmark(node_id)
+        if not deleted:
+            raise HTTPException(status_code=404, detail="Bookmark not found.")
         return {"deleted": True, "node_id": node_id}
 
     @app.post("/discover")

@@ -604,10 +604,13 @@ class Database:
             self.emit_graph_event("bookmark_updated", {"node_id": node_id, "note": note})
         return updated
 
-    def remove_bookmark(self, node_id: str) -> None:
+    def remove_bookmark(self, node_id: str) -> bool:
         with self.connect() as conn:
-            conn.execute("DELETE FROM bookmarks WHERE node_id = ?", (node_id,))
-        self.emit_graph_event("bookmark_removed", {"node_id": node_id})
+            cursor = conn.execute("DELETE FROM bookmarks WHERE node_id = ?", (node_id,))
+            deleted = cursor.rowcount > 0
+        if deleted:
+            self.emit_graph_event("bookmark_removed", {"node_id": node_id})
+        return deleted
 
     def list_bookmarks(self) -> list[dict]:
         with self.connect() as conn:
